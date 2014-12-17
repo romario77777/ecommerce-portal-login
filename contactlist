@@ -1,0 +1,46 @@
+<?php  
+include 'config.php';
+
+
+$contactlist = isset($_POST['contactlist']) ? $_POST['contactlist'] : '';
+$phoneID = isset($_POST['phoneID']) ? $_POST['phoneID'] : '';
+$dashboardID = isset($_POST['dashboardID']) ? $_POST['dashboardID'] : '';
+$arr = json_decode($contactlist);
+$result = count($arr);
+
+for($i =0; $i < $result; $i++) {
+    mysql_query("INSERT INTO test.dummy(dummyvalue, dummyvalue_unclean, dashboard_ID) VALUES('$arr[$i]', SUBSTRING('$arr[$i]',-10), '$dashboardID');");
+	  mysql_query("UPDATE test.dummy INNER JOIN test.registered_user ON dummy.dummyvalue_unclean = registered_user.phone_number SET test.dummy.phone_ID = test.registered_user.ID WHERE dashboard_ID = '$dashboardID';");
+    }
+
+$contactnotin = mysql_query("SELECT dummyvalue as nphn FROM test.dummy WHERE dummyvalue_unclean NOT IN (SELECT phone_number FROM test.registered_user) AND phone_ID IS NULL AND dashboard_ID = '$dashboardID';");
+
+$number = mysql_num_rows($contactnotin); 
+$x = 0; 
+$dvalue = array();
+$y = 0;
+     
+while ($x < $number)
+{    $row = mysql_fetch_assoc($contactnotin);
+    	$dummyval = $row['nphn']; 
+    	$dvalue["nphn".$y] = $dummyval;
+	 $y++;
+	 $x++; 
+} 
+print(json_encode($dvalue));
+
+$contactin = mysql_query("SELECT phone_ID AS phID, dashboard_ID AS dID FROM test.dummy WHERE dummyvalue_unclean IN (SELECT phone_number FROM test.registered_user) AND dashboard_ID = '$dashboardID';");
+$z = 0;
+$number = mysql_num_rows($contactin);
+while($z < $number)
+{   while($row = mysql_fetch_assoc($contactin)){
+    foreach((array)$row as $key=>$value){
+     $phID = $row["phID"];
+	   $dID = $row["dID"];
+	   $storeparticipant = mysql_query("CALL addingparticipants($phID,$dID);",$connect);
+	   }	   
+  }
+      $z++;	   
+}	
+mysql_close($connect);
+?>
