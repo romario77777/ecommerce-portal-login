@@ -1,0 +1,9 @@
+<?php  
+include 'config.php';
+$gcm_regid = isset($_POST['gcm_regid']) ? $_POST['gcm_regid'] : '';
+$res = mysql_query("SELECT ID FROM test.registered_user ru WHERE ru.gcm_registrationID = '$_POST[gcm_regid]'", $connect);
+while($row = mysql_fetch_assoc($res))
+       $rows[]=$row;
+print(json_encode($rows));
+mysql_close($connect);
+?>
